@@ -10,13 +10,13 @@ import torch.nn.functional as F
 NEG_SENTIMENT_ID = 0
 
 
-class BehaviorSemanticUtilityBackbone(nn.Module):
-    """Industrial-style behavior + semantic fusion backbone for GIFT.
+class BehaviorSemanticUtilityNetwork(nn.Module):
+    """Industrial-style behavior + semantic fusion network for GIFT.
 
     It keeps user/item ID embeddings for collaborative signal, adds train-only
     user/item behavior statistics, and fuses review quadruple semantics. This is
-    the default backbone because recommendation systems usually depend on user
-    behavior analysis rather than graph neural networks.
+    the default utility network because recommendation systems usually depend on
+    user behavior analysis rather than graph neural networks.
     """
 
     def __init__(self, num_users, num_items, embedding_dim=128, behavior_dim=5, dropout=0.2):
@@ -64,8 +64,8 @@ class BehaviorSemanticUtilityBackbone(nn.Module):
         return score + self.global_bias
 
 
-class NeuMFUtilityBackbone(nn.Module):
-    """NeuMF-style utility backbone with behavior and semantic side features."""
+class NeuMFUtilityNetwork(nn.Module):
+    """NeuMF-style utility network with behavior and semantic side features."""
 
     def __init__(self, num_users, num_items, embedding_dim=128, behavior_dim=5, dropout=0.2):
         super().__init__()
@@ -135,8 +135,8 @@ class CrossLayerV2(nn.Module):
         return x0 * self.weight(x) + x
 
 
-class DCNv2UtilityBackbone(nn.Module):
-    """DCNv2-style cross/deep utility backbone for dense recommendation features."""
+class DCNv2UtilityNetwork(nn.Module):
+    """DCNv2-style cross/deep utility network for dense recommendation features."""
 
     def __init__(self, num_users, num_items, embedding_dim=128, behavior_dim=5, dropout=0.2, num_cross_layers=3):
         super().__init__()
@@ -199,15 +199,15 @@ class DCNv2UtilityBackbone(nn.Module):
         return score + self.global_bias
 
 
-def build_utility_backbone(backbone, num_users, num_items, embedding_dim, dropout):
-    backbone = str(backbone or "behavior_mlp").lower()
-    if backbone == "behavior_mlp":
-        return BehaviorSemanticUtilityBackbone(num_users, num_items, embedding_dim, dropout=dropout)
-    if backbone == "neumf":
-        return NeuMFUtilityBackbone(num_users, num_items, embedding_dim, dropout=dropout)
-    if backbone == "dcnv2":
-        return DCNv2UtilityBackbone(num_users, num_items, embedding_dim, dropout=dropout)
-    raise ValueError(f"Unsupported GIFT utility backbone: {backbone}")
+def build_utility_network(utility_arch, num_users, num_items, embedding_dim, dropout):
+    utility_arch = str(utility_arch or "behavior_mlp").lower()
+    if utility_arch == "behavior_mlp":
+        return BehaviorSemanticUtilityNetwork(num_users, num_items, embedding_dim, dropout=dropout)
+    if utility_arch == "neumf":
+        return NeuMFUtilityNetwork(num_users, num_items, embedding_dim, dropout=dropout)
+    if utility_arch == "dcnv2":
+        return DCNv2UtilityNetwork(num_users, num_items, embedding_dim, dropout=dropout)
+    raise ValueError(f"Unsupported GIFT utility architecture: {utility_arch}")
 
 
 class GIFTModel(nn.Module):
@@ -224,7 +224,7 @@ class GIFTModel(nn.Module):
         risk_pooling="max",
         use_severity=True,
         fixed_negative_penalty=False,
-        backbone="behavior_mlp",
+        utility_arch="behavior_mlp",
         dropout=0.2,
     ):
         super().__init__()
@@ -235,9 +235,9 @@ class GIFTModel(nn.Module):
         self.use_max_risk = self.risk_pooling == "max"
         self.use_severity = bool(use_severity)
         self.fixed_negative_penalty = bool(fixed_negative_penalty)
-        self.backbone = str(backbone or "behavior_mlp").lower()
+        self.utility_arch = str(utility_arch or "behavior_mlp").lower()
 
-        self.utility_backbone = build_utility_backbone(self.backbone, num_users, num_items, embedding_dim, dropout)
+        self.utility_network = build_utility_network(self.utility_arch, num_users, num_items, embedding_dim, dropout)
         self.aspect_emb = nn.Embedding(num_aspects, embedding_dim, padding_idx=0)
         self.sentiment_emb = nn.Embedding(3, embedding_dim)
         self.quad_encoder = nn.Sequential(
@@ -280,7 +280,7 @@ class GIFTModel(nn.Module):
         item_behavior = batch.get("item_behavior_features")
         if item_behavior is None:
             item_behavior = torch.zeros(item_ids.size(0), 5, device=item_ids.device)
-        utility_score = self.utility_backbone(
+        utility_score = self.utility_network(
             user_ids,
             item_ids,
             user_behavior,

@@ -1,4 +1,4 @@
-"""GIFT model backbone package."""
+"""GIFT model package."""
 
 from .model.gift_model import GIFTModel, gift_loss
 

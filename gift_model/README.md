@@ -1,6 +1,6 @@
-# GIFT Model Backbone
+# GIFT Model
 
-This folder contains the compact GIFT model backbone. GIFT is a reliable sequential recommendation model that uses review-grounded aspect evidence to model user interest and fault tolerance together.
+This folder contains the compact GIFT model implementation. GIFT is a reliable sequential recommendation model that uses review-grounded aspect evidence to model user interest and fault tolerance together.
 
 ## Work Summary
 
@@ -34,7 +34,7 @@ model = GIFTModel(
     num_items=5000,
     num_aspects=128,
     embedding_dim=128,
-    backbone="behavior_mlp",
+    utility_arch="behavior_mlp",
     lambda_risk=0.5,
 )
 ```

@@ -2,7 +2,7 @@
 
 GIFT is a reliable sequential recommendation model. The model uses review-grounded aspect evidence to learn user interest and fault tolerance together, so recommendation scores can reflect both utility and regret risk.
 
-This repository currently provides a compact GIFT model backbone under `gift_model_backbone/`. The release is for code reading, lightweight testing, and future experiment integration. It does not include datasets, checkpoints, logs, or generated experiment artifacts.
+This repository currently provides a compact GIFT model implementation under `gift_model/`. The release is for code reading, lightweight testing, and future experiment integration. It does not include datasets, checkpoints, logs, or generated experiment artifacts.
 
 ## Work Summary
 
@@ -13,7 +13,7 @@ GIFT contains four main parts. Aspect Evidence Construction builds item-side asp
 Use Python 3.9 or newer. The minimal dependencies are PyTorch and pytest.
 
 ```bash
-cd gift_model_backbone
+cd gift_model
 pip install -r requirements.txt
 ```
 
@@ -22,7 +22,7 @@ pip install -r requirements.txt
 Run the included tests.
 
 ```bash
-cd gift_model_backbone
+cd gift_model
 python -m pytest tests
 ```
 
@@ -36,7 +36,7 @@ model = GIFTModel(
     num_items=5000,
     num_aspects=128,
     embedding_dim=128,
-    backbone="behavior_mlp",
+    utility_arch="behavior_mlp",
     lambda_risk=0.5,
 )
 ```
