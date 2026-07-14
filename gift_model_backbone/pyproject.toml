@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gift-model-backbone"
+version = "0.1.0"
+description = "Core GIFT model backbone, target-aware calibration, and utility-risk calibration."
+requires-python = ">=3.9"
+dependencies = ["torch>=2.0"]
+
+[tool.setuptools.packages.find]
+include = ["gift*"]
